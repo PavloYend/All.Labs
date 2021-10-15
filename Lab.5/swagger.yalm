@@ -1,16 +1,16 @@
 openapi: 3.0.0
 info:
-  description: |
-  version: "1.0.0"
+  description: ''
+  version: 1.0.0
   title: Calendar of events
-  termsOfService: 'http://swagger.io/terms/'
+  termsOfService: http://swagger.io/terms/
   license:
     name: Apache 2.0
-    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
 servers:
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/PavloYend/Lab5/1.0.0
-  - url: 'https://petstore.swagger.io/v2'
+  - url: https://petstore.swagger.io/v2
 tags:
   - name: event
   - name: user
@@ -20,15 +20,11 @@ paths:
     post:
       tags:
         - event
-      summary: Add a new event to the store
+      summary: Add a new event
       operationId: addEvent
       responses:
         '405':
           description: Invalid input
-      security:
-        - petstore_auth:
-            - 'write:events'
-            - 'read:events'
       requestBody:
         $ref: '#/components/requestBodies/Event'
     put:
@@ -43,10 +39,6 @@ paths:
           description: Pet not found
         '405':
           description: Validation exception
-      security:
-        - petstore_auth:
-            - 'write:events'
-            - 'read:events'
       requestBody:
         $ref: '#/components/requestBodies/Event'
   /event/findByStatus:
@@ -86,11 +78,7 @@ paths:
                   $ref: '#/components/schemas/Event'
         '400':
           description: Invalid status value
-      security:
-        - petstore_auth:
-            - 'write:events'
-            - 'read:events'
-  '/event/{eventId}':
+  /event/{eventId}:
     get:
       tags:
         - event
@@ -119,8 +107,6 @@ paths:
           description: Invalid ID supplied
         '404':
           description: Event not found
-      security:
-        - api_key: []
     delete:
       tags:
         - event
@@ -144,10 +130,6 @@ paths:
           description: Invalid ID supplied
         '404':
           description: Event not found
-      security:
-        - petstore_auth:
-            - 'write:events'
-            - 'read:events'
   /user:
     post:
       tags:
@@ -165,17 +147,6 @@ paths:
               $ref: '#/components/schemas/User'
         description: Created user object
         required: true
-  /user/createWithArray:
-    post:
-      tags:
-        - user
-      summary: Creates list of users with given input array
-      operationId: createUsersWithArrayInput
-      responses:
-        default:
-          description: successful operation
-      requestBody:
-        $ref: '#/components/requestBodies/UserArray'
   /user/createWithList:
     post:
       tags:
@@ -238,7 +209,7 @@ paths:
       responses:
         default:
           description: successful operation
-  '/user/{username}':
+  /user/{username}:
     get:
       tags:
         - user
@@ -310,7 +281,7 @@ paths:
           description: User not found
 externalDocs:
   description: Find out more about Swagger
-  url: 'http://swagger.io'
+  url: http://swagger.io
 components:
   schemas:
     Category:
@@ -386,16 +357,3 @@ components:
               $ref: '#/components/schemas/User'
       description: List of user object
       required: true
-  securitySchemes:
-    petstore_auth:
-      type: oauth2
-      flows:
-        implicit:
-          authorizationUrl: 'http://petstore.swagger.io/oauth/dialog'
-          scopes:
-            'write:events': modify events in your account
-            'read:events': read your events
-    api_key:
-      type: apiKey
-      name: api_key
-      in: header
