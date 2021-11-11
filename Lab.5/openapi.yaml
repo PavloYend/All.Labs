@@ -41,43 +41,6 @@ paths:
           description: Validation exception
       requestBody:
         $ref: '#/components/requestBodies/Event'
-  /event/findByStatus:
-    get:
-      tags:
-        - event
-      summary: Finds Events by status
-      description: Multiple status values can be provided with comma separated strings
-      operationId: findEventsByStatus
-      parameters:
-        - name: status
-          in: query
-          description: Status values that need to be considered for filter
-          required: true
-          explode: true
-          schema:
-            type: array
-            items:
-              type: string
-              enum:
-                - available
-                - connected
-              default: available
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Event'
-            application/xml:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Event'
-        '400':
-          description: Invalid status value
   /event/{eventId}:
     get:
       tags:
@@ -176,6 +139,8 @@ paths:
       responses:
         '400':
           description: Invalid ID supplied
+        '200':
+          description: successful operation
   
   /your_events/user/{userId}:
     get:
@@ -206,13 +171,71 @@ paths:
         '400':
           description: Invalid ID supplied
   
+  /event/{eventId}/users/:
+    get:
+      tags:
+      - connection
+      summary: Get users in event.
+      operationId: GetUsersInEvent
+      parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+         description: successful operation
+         content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid ID supplied
+  
+  /events/user/{userId}:
+    get:
+      tags:
+      - connection
+      summary: Get event for user
+      operationId: GetEventWithUser
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+         description: successful operation
+         content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '400':
+          description: Invalid ID supplied
+  
   /user:
     post:
       tags:
         - user
-      summary: Create user
+      summary: Add user
       description: This can only be done by the logged in user.
-      operationId: createUser
+      operationId: addUser
       responses:
         default:
           description: successful operation
@@ -221,7 +244,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/User'
-        description: Created user object
+        description: Add user object
         required: true
   /user/login:
     get:
@@ -274,6 +297,40 @@ paths:
       responses:
         default:
           description: successful operation
+  
+  /user/{userId}:
+    get:
+      tags:
+       - user
+      summary: Get all user info
+      operationId: GetUserInfo
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        "400":
+          description: Invalid username supplied
+        '200':
+          description: Succesful operation
+          content:
+           application/json:
+                schema:
+                  type: object
+                  properties:
+                    user:
+                      $ref: '#/components/schemas/User'
+                    subscription_events:
+                       type: array
+                       items:
+                         $ref: "#/components/schemas/Event"
+                    created_events:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Event"
+  
   /user/{username}:
     get:
       tags:
@@ -349,16 +406,6 @@ externalDocs:
   url: http://swagger.io
 components:
   schemas:
-    Category:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-      xml:
-        name: Category
     User:
       type: object
       properties:
@@ -385,18 +432,8 @@ components:
         id:
           type: integer
           format: int64
-        userid:
-          type: integer
-          format: int64
-        category:
-          $ref: '#/components/schemas/Category'
         name:
           type: string
-        status:
-          type: string
-          enum:
-            - available
-            - connected
       xml:
         name: Event
   requestBodies:
