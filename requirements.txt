@@ -1,2 +1,5 @@
-Flask
+Flask~=2.0.2
 waitress
+SQLAlchemy~=1.4.26
+alembic~=1.7.4
+requests~=2.26.0
