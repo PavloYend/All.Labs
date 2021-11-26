@@ -7,10 +7,54 @@ from flask import make_response
 from flask import request
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import insert
-
+from flask_jwt import jwt
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = '1234'
 bcrypt = Bcrypt(app)
+
+
+def encode_token(user_id):
+    """
+    Generates the Auth Token
+    :return: string
+    """
+    try:
+        payload = {
+            'sub': user_id
+        }
+        return jwt.encode(
+            payload,
+            app.config.get('SECRET_KEY'),
+            algorithm='HS256'
+        )
+    except Exception as e:
+        return e
+
+
+def decode_token(auth_token):
+    """
+    Decodes the auth token
+    :param auth_token:
+    :return: integer|string
+    """
+    try:
+        payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'))
+        return payload['sub']
+    except jwt.ExpiredSignatureError:
+        return 'Signature expired. Please log in again.'
+    except jwt.InvalidTokenError:
+        return 'Invalid token. Please log in again.'
+
+
+def verification(id, request):
+    try:
+        token = request.json.get('jwt')
+        temp_id = int(decode_token(token))
+    except:
+        return make_response(jsonify({'error': "Invalid token"}), 404)
+    if temp_id != id:
+        return make_response(jsonify({'error': "Verification unsuccessful"}), 404)
 
 
 def to_json(inst, cls):
@@ -55,6 +99,7 @@ def create_user():
         return make_response(jsonify({'error': 'Incorrect data'}), 404)
     # tasks.append(task)
     a = to_json(user, User)
+    a = a[:-1] + ", jwt: " + str(encode_token(user.id))[1:] + a[-1]
     return Response(response=a, status=200, mimetype="application/json")
 
 
@@ -69,6 +114,8 @@ def get_user(id):
 
 @app.route('/user/<int:id>', methods=['PUT'])
 def update_user(id):
+    if verification(id, request):
+        return verification(id, request)
     print("update_user")
     u = Session.query(User).filter_by(id=id).one()
     if not u:
@@ -96,6 +143,8 @@ def update_user(id):
 
 @app.route('/user/<int:id>', methods=['DELETE'])
 def delete_user(id):
+    if verification(id, request):
+        return verification(id, request)
     try:
         user = Session.query(User).filter_by(id=id).first()
         Session.delete(user)
@@ -128,8 +177,10 @@ def create_event():
 
 @app.route('/event/<int:id>', methods=['PUT'])
 def update_event(id):
+    u = Session.query(Event).filter_by(id=id).first()
+    if verification(u.owner_id, request):
+        return verification(u.owner_id, request)
     print("Update_event")
-    u = Session.query(Event).filter_by(id=id).all()
     if not u:
         return make_response(jsonify({'error': 'Not found'}), 404)
 
@@ -153,6 +204,9 @@ def get_event(id):
 
 @app.route('/event/<int:id>', methods=['DELETE'])
 def delete_event(id):
+    u = Session.query(Event).filter_by(id=id).first()
+    if verification(u.owner_id, request):
+        return verification(u.owner_id, request)
     try:
         event = Session.query(Event).filter_by(id=id).first()
         Session.delete(event)
